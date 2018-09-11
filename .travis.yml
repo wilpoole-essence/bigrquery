@@ -1,0 +1,35 @@
+# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
+
+language: R
+sudo: false
+cache: packages
+
+addons:
+  apt:
+    sources:
+      - sourceline: 'ppa:chris-lea/libsodium'
+    packages:
+      - libsodium-dev
+
+r:
+# - 3.1 # test fail because dbplyr requires 3.2
+- 3.2
+- oldrel
+- release
+- devel
+
+matrix:
+  include:
+  - r: release
+    env: DBPLYR="devel-version"
+    before_script: Rscript -e 'devtools::install_github("tidyverse/dbplyr")'
+  - r: release
+    env: BIGRQUERY_PASSWORD=''
+
+after_success:
+  - Rscript -e 'covr::codecov()'
+
+env:
+  global:
+    - _R_CHECK_FORCE_SUGGESTS_=false
+    - BIGQUERY_TEST_PROJECT=bigrquery-examples
